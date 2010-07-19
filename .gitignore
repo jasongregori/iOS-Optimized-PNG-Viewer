@@ -1,0 +1,9 @@
+# ignore mac folder info
+.DS_Store
+ 
+# ignore builds
+build/
+ 
+# ignore all xcode settings besides the project
+*.xcodeproj/*
+*.xcodeproj/project.pbxproj
