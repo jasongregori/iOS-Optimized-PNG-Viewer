@@ -11,7 +11,7 @@ This app allows you to view those iphone optimized images.
 How?
 ----
 
-Run this app in the simulator. Find it's Documents folder (you can hit the 'Copy Path' button to find it). Add any iphone optimized PNGs or folders with optimized PNGs in them The app will filter out any files which are not folders or PNGs, so go ahead and add a whole app bundle or whatever. Hit the refresh button in the app to refresh the files. You can select a file and hit save to save an un-optimized PNG to the "_Saved Images" folder (in Documents).
+Run this app in the simulator. Find it's Documents folder (you can hit the 'Copy Path' button to find it). Add any iphone optimized PNGs or folders with optimized PNGs in them. The app will filter out any files which are not folders or PNGs, so go ahead and add a whole app bundle or whatever. Hit the refresh button in the app to refresh the files. You can select a file and hit save to save an un-optimized version of the PNG to the "_Saved Images" folder (in Documents).
 
 Why?
 ----
@@ -43,7 +43,7 @@ You can replace 'iPhoneSimulator4.0.sdk' with different versions.
 To view the images just drag the whole folder into iPhone Image Viewer's Documents folder.
 
 
-Viewing images in app from iTunes
+Viewing images in any App from iTunes
 ---------------------------------
 
 1. Right click on app in iTunes and click "Show in Finder"
@@ -56,4 +56,4 @@ Viewing images in app from iTunes
 Viewing images in .artwork files
 --------------------------------
 
-You can't do that with this app, but you can with this one: http://github.com/0xced/UIKit-Artwork-Extractor
+You can't do that with this app, but you can with this one: [http://github.com/0xced/UIKit-Artwork-Extractor]
