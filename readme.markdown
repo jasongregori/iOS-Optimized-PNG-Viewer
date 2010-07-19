@@ -56,4 +56,4 @@ Viewing images in any App from iTunes
 Viewing images in .artwork files
 --------------------------------
 
-You can't do that with this app, but you can with [This one](http://github.com/0xced/UIKit-Artwork-Extractor)
+You can't do that with this app, but you can with [this one](http://github.com/0xced/UIKit-Artwork-Extractor).
