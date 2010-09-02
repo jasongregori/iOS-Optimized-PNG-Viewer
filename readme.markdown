@@ -57,3 +57,12 @@ Viewing images in .artwork files
 --------------------------------
 
 You can't do that with this app, but you can with [this one](http://github.com/0xced/UIKit-Artwork-Extractor).
+
+TODO
+----
+
+Please help by tackling these todo items :)
+
+* Save images to the desktop
+* Automatically find the SDK folders
+* Filter the folders without images in them out
