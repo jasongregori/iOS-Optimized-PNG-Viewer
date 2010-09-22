@@ -16,7 +16,11 @@
 	NSArray *files;
 	NSMutableSet *selectedFiles;
 }
+// Use either folderPath or filePaths
+// folderPath lists all files in that folder
 @property (nonatomic, copy) NSString *folderPath;
+// filePaths lists those files
+@property (nonatomic, copy) NSArray *filePaths;
 
 - (void)saveImages;
 - (void)resetFolderContents;
