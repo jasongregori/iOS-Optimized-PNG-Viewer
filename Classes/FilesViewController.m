@@ -100,7 +100,7 @@
 	cell.textLabel.text = name;
 	cell.imageView.image = [self fileIconAtIndex:indexPath.row];
 	
-	cell.accessoryType = [self.selectedFiles containsObject:name] ? UITableViewCellAccessoryCheckmark : UITableViewCellAccessoryNone;
+	cell.accessoryType = [self.selectedFiles containsObject:[self.files objectAtIndex:indexPath.row]] ? UITableViewCellAccessoryCheckmark : UITableViewCellAccessoryNone;
   
   return cell;
 }
@@ -322,7 +322,7 @@
 	{
 		return [UIImage imageNamed:@"folder_icon.png"];
 	}
-	return [UIImage imageWithContentsOfFile:[self.files objectAtIndex:index]];
+	return [UIImage imageWithData:[NSData dataWithContentsOfFile:[self.files objectAtIndex:index]]];
 }
 
 - (void)fileAtIndexWasTapped:(NSUInteger)index
@@ -399,7 +399,7 @@
                                        usingBlock:^(id obj, BOOL *stop)
 	 {
 		 // load image
-		 UIImage *image = [UIImage imageWithContentsOfFile:obj];
+		 UIImage *image = [UIImage imageWithData:[NSData dataWithContentsOfFile:obj]];
 		 
 		 // save image
 		 NSData *data = UIImagePNGRepresentation(image);
