@@ -13,30 +13,43 @@
 @interface FilesViewController ()
 
 @property (retain, nonatomic) NSArray *files;
-@property (retain, nonatomic) NSMutableSet *selectedFiles;
+@property (retain, nonatomic) NSMutableIndexSet *selectedRows;
 @property (readonly, nonatomic) UIBarButtonItem *saveButton;
-@property (readonly, nonatomic) UIBarButtonItem *refreshButton;
 
 @end
 
-
 @implementation FilesViewController
-@synthesize files, filePaths, folderPath, selectedFiles;
+@synthesize files, filePaths, folderPath, selectedRows;
 
+- (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil {
+    self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
+    if (self) {
+        self.selectedRows = [NSMutableIndexSet indexSet];
+        self.toolbarItems = [NSArray arrayWithObjects:
+                             [[[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemRefresh
+                                                                            target:self
+                                                                            action:@selector(resetFolderContents)]
+                              autorelease],
+                             [[[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace
+                                                                            target:nil
+                                                                            action:nil]
+                              autorelease],
+                             [[[UIBarButtonItem alloc] initWithTitle:@"Toggle All"
+                                                               style:UIBarButtonItemStyleBordered
+                                                              target:self
+                                                              action:@selector(toggleAll)]
+                              autorelease],
+                             nil];
+    }
+    return self;
+}
 
 #pragma mark -
 #pragma mark View lifecycle
 
-
 - (void)viewDidLoad
 {
   [super viewDidLoad];
-  
-  // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
-  self.navigationItem.rightBarButtonItem = [[[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemRefresh
-                                                                                          target:self
-                                                                                          action:@selector(resetFolderContents)]
-                                            autorelease];
 }
 
 
@@ -100,7 +113,7 @@
 	cell.textLabel.text = name;
 	cell.imageView.image = [self fileIconAtIndex:indexPath.row];
 	
-	cell.accessoryType = [self.selectedFiles containsObject:[self.files objectAtIndex:indexPath.row]] ? UITableViewCellAccessoryCheckmark : UITableViewCellAccessoryNone;
+	cell.accessoryType = [self.selectedRows containsIndex:indexPath.row] ? UITableViewCellAccessoryCheckmark : UITableViewCellAccessoryNone;
   
   return cell;
 }
@@ -150,7 +163,34 @@
 #pragma mark Table view delegate
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-	[self fileAtIndexWasTapped:indexPath.row];
+    NSUInteger index = indexPath.row;
+    if ([self fileAtIndexIsFolder:index])
+	{
+		FilesViewController *child = [[[FilesViewController alloc] init] autorelease];
+		child.folderPath = [self.files objectAtIndex:index];
+		[self.navigationController pushViewController:child animated:YES];
+	}
+	else
+	{
+		UITableViewCell *cell = [self.tableView cellForRowAtIndexPath:indexPath];
+		
+		if ([self.selectedRows containsIndex:index])
+		{
+			[self.selectedRows removeIndex:index];
+			[cell setAccessoryType:UITableViewCellAccessoryNone];
+			if ([self.selectedRows count] == 0)
+			{
+				[self.navigationItem setRightBarButtonItem:nil];
+			}
+		}
+		else
+		{
+			[self.selectedRows addIndex:index];
+			[cell setAccessoryType:UITableViewCellAccessoryCheckmark];
+			[self.navigationItem setRightBarButtonItem:self.saveButton];
+		}
+		[self.tableView deselectRowAtIndexPath:indexPath animated:YES];
+	}
 }
 
 - (NSInteger)tableView:(UITableView *)tableView indentationLevelForRowAtIndexPath:(NSIndexPath *)indexPath
@@ -177,9 +217,9 @@
 
 - (void)dealloc {
 	self.folderPath = nil;
-	self.selectedFiles = nil;
+	self.selectedRows = nil;
 	self.files = nil;
-  self.filePaths = nil;
+    self.filePaths = nil;
 	
   [super dealloc];
 }
@@ -195,12 +235,20 @@
           autorelease];
 }
 
-- (UIBarButtonItem *)refreshButton
-{
-	return [[[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemRefresh
-                                                        target:self
-                                                        action:@selector(resetFolderContents)]
-          autorelease];
+- (void)toggleAll {
+    UITableViewCellAccessoryType acc = UITableViewCellAccessoryNone;
+    if ([self.selectedRows count] == [self.files count]) {
+        [self.selectedRows removeAllIndexes];
+        [self.navigationItem setRightBarButtonItem:nil];
+    }
+    else {
+        [self.selectedRows addIndexesInRange:NSMakeRange(0, self.files.count)];
+        acc = UITableViewCellAccessoryCheckmark;
+        [self.navigationItem setRightBarButtonItem:self.saveButton];
+    }
+    for (UITableViewCell *cell in [self.tableView visibleCells]) {
+        cell.accessoryType = acc;
+    }
 }
 
 #pragma mark -
@@ -211,7 +259,7 @@
 	if (!self.folderPath && !self.filePaths)
 	{
 		self.files = nil;
-		self.selectedFiles = nil;
+		[self.selectedRows removeAllIndexes];
 		if (self.tableView)
 		{
 			[self.tableView reloadData];
@@ -265,7 +313,6 @@
   }
   
   if (self.files) {
-		self.selectedFiles = [NSMutableSet set];
 		if (self.tableView)
 		{
 			[self.tableView reloadData];
@@ -325,39 +372,6 @@
 	return [UIImage imageWithData:[NSData dataWithContentsOfFile:[self.files objectAtIndex:index]]];
 }
 
-- (void)fileAtIndexWasTapped:(NSUInteger)index
-{
-	if ([self fileAtIndexIsFolder:index])
-	{
-		FilesViewController *child = [[[FilesViewController alloc] init] autorelease];
-		child.folderPath = [self.files objectAtIndex:index];
-		[self.navigationController pushViewController:child animated:YES];
-	}
-	else
-	{
-		NSString *path = [self.files objectAtIndex:index];
-		NSIndexPath *indexPath = [NSIndexPath indexPathForRow:index inSection:0];
-		UITableViewCell *cell = [self.tableView cellForRowAtIndexPath:indexPath];
-		
-		if ([self.selectedFiles containsObject:path])
-		{
-			[self.selectedFiles removeObject:path];
-			[cell setAccessoryType:UITableViewCellAccessoryNone];
-			if ([self.selectedFiles count] == 0)
-			{
-				[self.navigationItem setRightBarButtonItem:self.refreshButton];
-			}
-		}
-		else
-		{
-			[self.selectedFiles addObject:path];
-			[cell setAccessoryType:UITableViewCellAccessoryCheckmark];
-			[self.navigationItem setRightBarButtonItem:self.saveButton];
-		}
-		[self.tableView deselectRowAtIndexPath:indexPath animated:YES];
-	}
-}
-
 - (BOOL)fileAtIndexIsImage:(NSUInteger)index
 {
 	return ![self fileAtIndexIsFolder:index];
@@ -376,49 +390,55 @@
   
 	static NSString *saveFolder = nil;
 	if (!saveFolder) {
-    // get desktop
+        // get desktop
 #if TARGET_IPHONE_SIMULATOR
-    NSString *logname = [NSString stringWithCString:getenv("LOGNAME") encoding:NSUTF8StringEncoding];
-    struct passwd *pw = getpwnam([logname UTF8String]);
-    NSString *home = pw ? [NSString stringWithCString:pw->pw_dir encoding:NSUTF8StringEncoding] : [@"/Users" stringByAppendingPathComponent:logname];
-    saveFolder = [NSString stringWithFormat:@"%@/Desktop", home];
+        NSString *logname = [NSString stringWithCString:getenv("LOGNAME") encoding:NSUTF8StringEncoding];
+        struct passwd *pw = getpwnam([logname UTF8String]);
+        NSString *home = pw ? [NSString stringWithCString:pw->pw_dir encoding:NSUTF8StringEncoding] : [@"/Users" stringByAppendingPathComponent:logname];
+        saveFolder = [NSString stringWithFormat:@"%@/Desktop", home];
 #else
-    saveFolder = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) lastObject];
+        saveFolder = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) lastObject];
 #endif
 		saveFolder = [[saveFolder
-                   stringByAppendingPathComponent:@"iOS Optimized PNG Viewer Saved Images"]
-                  retain];
-		if (![fm fileExistsAtPath:saveFolder])
-		{
-			[fm createDirectoryAtPath:saveFolder withIntermediateDirectories:NO attributes:nil error:NULL];
-		}
+                       stringByAppendingPathComponent:@"iOS Optimized PNG Viewer Saved Images"]
+                      retain];
 	}
+
+    // make sure this folder exists, it could have been deleted since the last time
+    if (![fm fileExistsAtPath:saveFolder])
+    {
+        [fm createDirectoryAtPath:saveFolder withIntermediateDirectories:NO attributes:nil error:NULL];
+    }
   
 	// save all selected images to save folder
-	[self.selectedFiles enumerateObjectsWithOptions:NSEnumerationConcurrent
-                                       usingBlock:^(id obj, BOOL *stop)
-	 {
-		 // load image
-		 UIImage *image = [UIImage imageWithData:[NSData dataWithContentsOfFile:obj]];
-		 
-		 // save image
-		 NSData *data = UIImagePNGRepresentation(image);
-		 [fm createFileAtPath:[saveFolder stringByAppendingPathComponent:[obj lastPathComponent]]
-                 contents:data
-               attributes:nil];
+	[self.selectedRows enumerateIndexesUsingBlock:^(NSUInteger idx, BOOL *stop)
+     {
+         NSString *path = [self.files objectAtIndex:idx];
+         
+         // make sure this exists and isn't a folder
+         BOOL isFolder;
+         if ([fm fileExistsAtPath:path isDirectory:&isFolder] && !isFolder)
+         {
+             // load image
+             UIImage *image = [UIImage imageWithData:[NSData dataWithContentsOfFile:path]];
+             
+             // save image
+             NSData *data = UIImagePNGRepresentation(image);
+             [fm createFileAtPath:[saveFolder stringByAppendingPathComponent:[path lastPathComponent]]
+                         contents:data
+                       attributes:nil];
+         }
 		 
 		 // uncheck image
-		 dispatch_async(dispatch_get_main_queue(), ^{
-			 NSUInteger index = [self.files indexOfObject:obj];
-			 UITableViewCell *cell = [self.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:index inSection:0]];
-			 [cell setAccessoryType:UITableViewCellAccessoryNone];
-		 });
+         NSUInteger index = [self.files indexOfObject:path];
+         UITableViewCell *cell = [self.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:index inSection:0]];
+         [cell setAccessoryType:UITableViewCellAccessoryNone];
 	 }];
 	
-	[self.selectedFiles removeAllObjects];
+	[self.selectedRows removeAllIndexes];
 	
-	// reset refresh button
-	[self.navigationItem setRightBarButtonItem:self.refreshButton];
+	// reset right nav button
+	[self.navigationItem setRightBarButtonItem:nil];
 	// tell user it is finished
 	self.navigationItem.prompt = @"Saved to \"Desktop\"";
 	

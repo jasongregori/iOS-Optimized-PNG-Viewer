@@ -14,7 +14,7 @@
 {
 	NSString *folderPath;
 	NSArray *files;
-	NSMutableSet *selectedFiles;
+	NSMutableIndexSet *selectedRows;
 }
 // Use either folderPath or filePaths
 // folderPath lists all files in that folder
@@ -24,10 +24,11 @@
 
 - (void)saveImages;
 - (void)resetFolderContents;
+- (void)toggleAll;
+
 - (NSUInteger)fileCount;
 - (NSString *)fileNameAtIndex:(NSUInteger)index;
 - (UIImage *)fileIconAtIndex:(NSUInteger)index;
-- (void)fileAtIndexWasTapped:(NSUInteger)index;
 - (BOOL)fileAtIndexIsImage:(NSUInteger)index;
 - (BOOL)fileAtIndexIsFolder:(NSUInteger)index;
 

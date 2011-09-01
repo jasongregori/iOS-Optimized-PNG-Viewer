@@ -57,6 +57,7 @@
   
 	filesViewController.filePaths = folderPaths;
   filesViewController.title = @"iOS PNG Viewer";
+    navigationController.toolbarHidden = NO;
   [navigationController pushViewController:filesViewController animated:NO];
   
   // Add the navigation controller's view to the window and display.
