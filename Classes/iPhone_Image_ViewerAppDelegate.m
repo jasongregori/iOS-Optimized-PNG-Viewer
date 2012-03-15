@@ -40,7 +40,7 @@
   // try to get frameworks
   NSFileManager *fm = [NSFileManager defaultManager];
   // check if there are sdks
-  NSString *sdksPath = @"/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/";
+  NSString *sdksPath = @"/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/";
   if ([fm fileExistsAtPath:sdksPath]) {
     // get newest sdk
     NSArray *folders = [fm contentsOfDirectoryAtPath:sdksPath error:NULL];
